@@ -52,12 +52,11 @@ img { display: block; max-width: 100%; }
 .text-link span, .arrow-link span { padding-left: 8px; }
 .hero__note { margin: 22px 0 0; color: #91877a; font-size: 10px; }
 .hero__visual { position: absolute; z-index: 1; inset: 0 -2% 0 42%; pointer-events: none; }
-.hero-fallback { position: absolute; inset: 35px 0 20px; }
-.hero-fallback img { position: absolute; object-fit: cover; box-shadow: 0 20px 50px #30201520; }
-.hero-fallback__main { width: clamp(290px, 31vw, 405px); aspect-ratio: .82; height: auto; top: 50%; left: 50%; transform: translate(-44%, -52%); }
-.hero-fallback__side { width: clamp(138px, 17vw, 216px); aspect-ratio: 1; height: auto; }
-.hero-fallback__side--one { left: 3%; bottom: 9%; transform: rotate(-5deg); }
-.hero-fallback__side--two { right: 3%; bottom: 6%; transform: rotate(4deg); }
+.hero-fallback { position: absolute; inset: 9% 4%; display: grid; grid-template-columns: minmax(0, 1.56fr) minmax(0, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: clamp(9px, 1.15vw, 16px); }
+.hero-fallback img { width: 100%; height: 100%; min-height: 0; object-fit: cover; box-shadow: 0 14px 34px #30201518; }
+.hero-fallback__main { grid-column: 1; grid-row: 1 / span 2; }
+.hero-fallback__side--one { grid-column: 2; grid-row: 1; }
+.hero-fallback__side--two { grid-column: 2; grid-row: 2; }
 .hero-fallback.is-hidden { opacity: 0; transition: opacity .4s; }
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .35s; }
 .hero-canvas.is-ready { opacity: 1; }
@@ -160,12 +159,11 @@ img { display: block; max-width: 100%; }
   .hero__actions { gap: 18px; }
   .button { min-height: 45px; padding-inline: 14px; font-size: 10px; }
   .hero__note { margin-top: 14px; font-size: 9px; }
-  .hero__visual { inset: 370px -4px 10px 0; }
-  .hero-fallback { inset: 5px 0 0; }
-  .hero-fallback__main { width: min(67vw, 310px); top: 52%; left: 50%; transform: translate(-50%, -50%); }
-  .hero-fallback__side { width: min(36vw, 166px); }
-  .hero-fallback__side--one { left: 2%; bottom: 7%; }
-  .hero-fallback__side--two { right: 2%; bottom: 5%; }
+  .hero__visual { inset: 400px 18px 14px; }
+  .hero-fallback { inset: 6px 0 0; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: minmax(0, 2.3fr) minmax(0, 1fr); gap: 8px; }
+  .hero-fallback__main { grid-column: 3 / span 8; grid-row: 1; }
+  .hero-fallback__side--one { grid-column: 1 / span 6; grid-row: 2; }
+  .hero-fallback__side--two { grid-column: 7 / span 6; grid-row: 2; }
   .manifesto { padding: 32px 26px 35px; display: grid; grid-template-columns: 1fr; gap: 17px; }
   .manifesto__label { margin: 0; }
   .manifesto__line { font-size: 39px; }

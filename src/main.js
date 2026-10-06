@@ -29,14 +29,16 @@ function startHeroScene() {
   }
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+  camera.position.z = 60;
   const stage = new THREE.Group();
   scene.add(stage);
   const configs = [
-    { file: 'cream-puff.jpg', width: 3.2, height: 3.9, x: 0.72, y: 0.16, z: 0.3, tilt: -0.045 },
-    { file: 'carrot-cake.jpg', width: 2.45, height: 2.45, x: -1.55, y: -1.32, z: -0.55, tilt: 0.055 },
-    { file: 'brown-butter-cookie.jpg', width: 2.1, height: 2.1, x: 2.35, y: -1.28, z: -0.85, tilt: 0.035 },
+    { file: 'cream-puff.jpg', depth: 0 },
+    { file: 'carrot-cake.jpg', depth: 1 },
+    { file: 'brown-butter-cookie.jpg', depth: 2 },
   ];
+  const photos = [];
   let readyCount = 0;
   const loader = new THREE.TextureLoader();
   configs.forEach((config, index) => {
@@ -44,12 +46,11 @@ function startHeroScene() {
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
       const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(config.width, config.height), material);
-      mesh.position.set(config.x, config.y, config.z);
-      mesh.rotation.z = config.tilt;
-      mesh.userData.baseY = config.y;
-      mesh.userData.phase = index * 1.6;
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+      mesh.position.z = config.depth;
       stage.add(mesh);
+      photos[index] = mesh;
+      layoutPhotos();
       readyCount += 1;
       if (readyCount === configs.length) {
         fallback.classList.add('is-hidden');
@@ -66,14 +67,67 @@ function startHeroScene() {
   let aimY = 0;
   let frameId = 0;
   let inView = true;
+  function layoutPhotos() {
+    const mobile = width <= 650;
+    let cards;
+    if (mobile) {
+      const gap = 8;
+      const columnWidth = (width - gap * 11) / 12;
+      const innerHeight = Math.max(height - 6, 1);
+      const rowHeight = (innerHeight - gap) / 3.3;
+      const mainHeight = rowHeight * 2.3;
+      const supportTop = 6 + mainHeight + gap;
+      const supportHeight = innerHeight - mainHeight - gap;
+      const position = (mesh, left, top, cardWidth, cardHeight) => {
+        if (!mesh) return;
+        mesh.scale.set(cardWidth, cardHeight, 1);
+        mesh.position.x = left + cardWidth / 2 - width / 2;
+        mesh.position.y = height / 2 - top - cardHeight / 2;
+      };
+      cards = [
+        [2 * (columnWidth + gap), 6, 8 * columnWidth + 7 * gap, mainHeight],
+        [0, supportTop, 6 * columnWidth + 5 * gap, supportHeight],
+        [6 * (columnWidth + gap), supportTop, 6 * columnWidth + 5 * gap, supportHeight],
+      ];
+      photos.forEach((mesh, index) => {
+        if (mesh) position(mesh, ...cards[index]);
+      });
+      return;
+    }
+
+    const insetX = width * 0.04;
+    const insetY = height * 0.09;
+    const gapX = Math.min(16, Math.max(9, width * 0.022));
+    const gapY = gapX;
+    const innerWidth = width - insetX * 2;
+    const innerHeight = height - insetY * 2;
+    const mainWidth = (innerWidth - gapX) * 0.61;
+    const sideWidth = innerWidth - mainWidth - gapX;
+    const sideHeight = (innerHeight - gapY) / 2;
+    cards = [
+      [insetX, insetY, mainWidth, innerHeight],
+      [insetX + mainWidth + gapX, insetY, sideWidth, sideHeight],
+      [insetX + mainWidth + gapX, insetY + sideHeight + gapY, sideWidth, sideHeight],
+    ];
+    photos.forEach((mesh, index) => {
+      if (!mesh) return;
+      const [left, top, cardWidth, cardHeight] = cards[index];
+      mesh.scale.set(cardWidth, cardHeight, 1);
+      mesh.position.x = left + cardWidth / 2 - width / 2;
+      mesh.position.y = height / 2 - top - cardHeight / 2;
+    });
+  }
   function resize() {
     width = host.clientWidth;
     height = host.clientHeight;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setSize(width, height, false);
-    camera.aspect = width / Math.max(height, 1);
-    camera.position.z = width < 640 ? 9.4 : 8.2;
+    camera.left = -width / 2;
+    camera.right = width / 2;
+    camera.top = height / 2;
+    camera.bottom = -height / 2;
     camera.updateProjectionMatrix();
+    layoutPhotos();
   }
   resize();
   window.addEventListener('resize', resize, { passive: true });
@@ -91,12 +145,10 @@ function startHeroScene() {
     frameId = requestAnimationFrame(render);
     aimX += (mouseX - aimX) * 0.025;
     aimY += (mouseY - aimY) * 0.025;
-    stage.rotation.y += (aimX * 0.055 - stage.rotation.y) * 0.035;
-    stage.rotation.x += (-aimY * 0.035 - stage.rotation.x) * 0.035;
-    const time = performance.now() * 0.00038;
-    stage.children.forEach((mesh) => {
-      mesh.position.y = mesh.userData.baseY + Math.sin(time + mesh.userData.phase) * 0.025;
-    });
+    stage.position.x += (-aimX * 3 - stage.position.x) * 0.035;
+    stage.position.y += (aimY * 2.5 - stage.position.y) * 0.035;
+    stage.rotation.y += (aimX * 0.008 - stage.rotation.y) * 0.035;
+    stage.rotation.x += (-aimY * 0.006 - stage.rotation.x) * 0.035;
     renderer.render(scene, camera);
   }
   render();
